@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Slider,
   IconButton,
@@ -11,6 +11,7 @@ import {
   Button,
   Grid,
   CircularProgress,
+  Chip,
 } from "@mui/material";
 import Forward10Icon from "@mui/icons-material/Forward10";
 import Replay5Icon from "@mui/icons-material/Replay5";
@@ -25,6 +26,7 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import Grow from "@mui/material/Grow";
+import ReactPlayer from "react-player";
 export const Control = ({
   controlRef,
   onPlayPause,
@@ -49,7 +51,14 @@ export const Control = ({
   mouseMoveHandler,
   onBuffer,
   onPlaybackRateChange,
+  mouseTimeChange,
+  sliderTimerOffset,
+  sliderTime,
+  url,
+  sliderRef,
 }) => {
+  const [ShowSliderTime, setShowSliderTime] = useState(false);
+
   return (
     <>
       <Stack
@@ -106,7 +115,38 @@ export const Control = ({
           )}
         </Stack>
         <Box>
-          <Box px={2}>
+          <Box
+            px={2}
+            sx={{
+              position: "relative",
+            }}
+            onMouseOver={() => setShowSliderTime(true)}
+            onMouseLeave={() => setShowSliderTime(false)}
+          >
+            <Grow in={ShowSliderTime}>
+              <Stack
+                justifyContent="center"
+                alignItems="center"
+                gap={1}
+                sx={{
+                  position: "absolute",
+                  zIndex: 200,
+                  left: sliderTimerOffset - 45,
+                  bottom: 30,
+                  width: 100,
+                }}
+              >
+                <ReactPlayer
+                  url={url}
+                  ref={sliderRef}
+                  className="player"
+                  height="70px"
+                  muted={true}
+                />
+                <Chip color="error" label={sliderTime} />
+              </Stack>
+            </Grow>
+
             <Slider
               color="error"
               min={0}
@@ -114,6 +154,7 @@ export const Control = ({
               value={played * 100}
               onChange={onSeek}
               onChangeCommitted={onSeekMouseUp}
+              onMouseMove={mouseTimeChange}
             />
           </Box>
           <Stack direction="row" justifyContent="space-between">

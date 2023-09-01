@@ -1,12 +1,11 @@
 import ReactPlayer from "react-player";
 import "./App.css";
-import { Box, Slider } from "@mui/material";
+import { Box } from "@mui/material";
 import { Control } from "./components/control";
 import { useEffect, useRef, useState } from "react";
 import screenfull from "screenfull";
 
 import { formatTime } from "./components/format";
-import { withStyles } from "@mui/styles";
 
 function App() {
   const [videoState, setVideoState] = useState({
@@ -19,7 +18,7 @@ function App() {
     playbackRate: 1.0,
   });
   const [video, setVideo] = useState(
-    "	https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"
+    "https://i9ahrxrgdfew.lions-vidcdn.com/hls2/01/00524/79uahq57fb13_o/master.m3u8?t=Yzl3ZFPcL_uvYgNaA7FZNrj4Y-txjlYYl8NRiDbgo_A&s=1693572423&e=129600&f=2623701&srv=iaqb75a2vnnqur8k&i=0.4&sp=1500&p1=iaqb75a2vnnqur8k&p2=iaqb75a2vnnqur8k&asn=35805"
   );
   const [settings, setSettings] = useState(false);
 
@@ -27,17 +26,27 @@ function App() {
     videoState;
   const controlRef = useRef(null);
   const videoPlayerRef = useRef(null);
+  const sliderRef = useRef(null);
+
   const currentTime = videoPlayerRef.current
     ? videoPlayerRef.current.getCurrentTime()
     : "00:00";
-  console.log(currentTime);
   const duration = videoPlayerRef.current
     ? videoPlayerRef.current.getDuration()
     : "00:00";
 
   const targetElement = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-
+  const [sliderTimerOffset, setSliderTimerOffset] = useState(0);
+  const [sliderTime, setSliderTime] = useState(0);
+  const mouseTimeChange = (e) => {
+    let offsetX = e.clientX;
+    let width = controlRef.current.clientWidth - 13;
+    setSliderTimerOffset(offsetX);
+    let percent = (offsetX / width) * duration;
+    setSliderTime(formatTime(percent));
+    sliderRef.current.seekTo(percent);
+  };
   const handleFullscreenToggle = () => {
     if (screenfull.isEnabled) {
       screenfull.toggle(targetElement.current);
@@ -150,7 +159,6 @@ function App() {
   };
 
   const handleKeyDown = (event) => {
-    console.log(event.key);
     switch (event.key) {
       case " ":
         console.log("shemovida");
@@ -193,10 +201,21 @@ function App() {
       <Box
         sx={{
           position: "relative",
-          width: { lg: 720, md: 720, sm: 720, xs: 720 },
-          height: { lg: 405, md: 405, sm: 405, xs: 405 },
+          // width: { lg: 720, md: 720, sm: 720, xs: 720 },
+          // height: { lg: 405, md: 405, sm: 405, xs: 405 },
+          height: "100vh",
+          overflow: "hidden",
         }}
       >
+        <Box
+          sx={{
+            bgcolor: "black",
+            position: "absolute",
+            width: 1,
+            zIndex: -1,
+            height: "100vh",
+          }}
+        />
         <Box ref={targetElement}>
           <ReactPlayer
             ref={videoPlayerRef}
@@ -213,7 +232,7 @@ function App() {
             }}
             className="player"
             width="100%"
-            height="100%"
+            height="100vh"
             volume={volume}
             muted={muted}
             onProgress={progressHandler}
@@ -245,11 +264,15 @@ function App() {
             mouseMoveHandler={mouseMoveHandler}
             onBuffer={buffer}
             onPlaybackRateChange={handleChangePlayback}
+            mouseTimeChange={mouseTimeChange}
+            sliderTimerOffset={sliderTimerOffset}
+            sliderTime={sliderTime}
+            url={video}
+            sliderRef={sliderRef}
           />
         </Box>
       </Box>
       {/* {buffer && <p>Loading</p>} */}
-      <Slider color="error" />
     </Box>
   );
 }
